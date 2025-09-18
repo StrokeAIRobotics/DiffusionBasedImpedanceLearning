@@ -9,7 +9,7 @@ from train_val_test import deployment
 #FIRST SHARED MEMORY
 #######################################################################
 # Define shared memory parameters
-SHM_NAME = "SharedMemory_AVP_final_5"
+SHM_NAME = "SharedMemory_1"
 SHM_SIZE = 8 + 8*6
 
 # Create shared memory
@@ -36,7 +36,7 @@ print("Python is ready. Ready flag set to 0.")
 #SECOND SHARED MEMORY
 #######################################################################
 #Define second shared memory parameters
-SHM_NAME_2 = "SharedMemory_AVP_final_6"
+SHM_NAME_2 = "SharedMemory_2"
 SHM_SIZE_2 = (3 + 4 + 3 + 3 + 9 + 9 + 3 + 3 +3 +3 +7) *8 *16 + 8 # Change that
 
 # Create second shared memory
