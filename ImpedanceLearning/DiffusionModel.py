@@ -5,12 +5,11 @@ import torch.optim as optim
 import numpy as np
 import matplotlib.pyplot as plt
 import gc
-
 from torch.utils.data import DataLoader
 
 from models import NoisePredictorTransformerWithCrossAttentionTime
 from data import ImpedanceDatasetDiffusion, load_robot_data, compute_statistics_per_axis, normalize_data_per_axis
-from train_val_test import train_model_diffusion, validate_model_diffusion, test_model, inference_simulation
+from train_val_test import train_model_diffusion, test_model, inference_simulation
 from utils import set_seed
 from datetime import datetime
 
