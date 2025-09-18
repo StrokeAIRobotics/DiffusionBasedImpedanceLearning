@@ -1,1 +1,1 @@
-# DiffusionBasedImpedanceAdaptation
+# DiffusionBasedImpedanceLearning
