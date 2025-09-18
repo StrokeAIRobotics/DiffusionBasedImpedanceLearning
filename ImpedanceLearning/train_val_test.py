@@ -11,7 +11,7 @@ from datetime import datetime
 from scipy.ndimage import uniform_filter1d
 import math
 import torch.nn.functional as F
-from utils import (add_noise, quaternion_multiply, quaternion_inverse, quaternion_loss, smooth_quaternions_slerp, quaternion_to_axis)
+from utils import (add_noise, quaternion_multiply, quaternion_inverse, quaternion_loss, smooth_quaternions_slerp, quaternion_to_axis, smooth_stiffness, estimate_stiffness_per_window, quat_to_axis_angle_stiff)
 from utils import set_seed
 
 
@@ -820,3 +820,145 @@ def inference_simulation(model, application_loader, application_dataset, device,
     df.to_csv(output_file, sep='\t', index=False)
 
     print(f"Results saved to {output_file}")
+
+
+
+
+
+def deployment(model, device,stats, pos, pos_0,q, q_0,force_model, force_stiffness, moment_model, moment_stiffness, lambda_matrix_np, dx_np,omega_np,lambda_w_matrix_np, clean_pos_before, clean_q_before, num_denoising_steps=20, K_t_prev = np.full(3, 650.0), K_r_prev = np.full(3, 100.0), iteration=0):
+    #model eval
+    model.eval()
+
+    #____________data preprocessing____________
+    #convert to torch tensor and match model input
+    # At start of function (or outside if possible)
+    to_tensor = lambda x: torch.as_tensor(x, dtype=torch.float32, device=device)
+    inputs = [pos, pos_0, q, q_0, force_model, force_stiffness, moment_model, moment_stiffness]
+    pos, pos_0, q, q_0, force_model, force_stiffness, moment_model, moment_stiffness = [to_tensor(x).unsqueeze(0) for x in inputs]
+    clean_q_before = to_tensor(clean_q_before)  
+    lambda_matrix_np = lambda_matrix_np[np.newaxis, ...]
+    lambda_w_matrix_np = lambda_w_matrix_np[np.newaxis, ...]
+
+    #Normalize inputs using training stats
+    min_pos = stats['min_pos_0']
+    max_pos = stats['max_pos_0']
+    min_force = stats['min_force']
+    max_force = stats['max_force']
+    min_moment = stats['min_moment']
+    max_moment = stats['max_moment']
+    # Normalize the input data
+    pos = (pos - min_pos) / (max_pos - min_pos)
+    pos_0 = (pos_0 - min_pos) / (max_pos - min_pos)
+    force_model = (force_model - min_force) / (max_force - min_force)
+    force_stiffness = (force_stiffness - min_force) / (max_force - min_force)
+    moment_model = (moment_model - min_moment) / (max_moment - min_moment)
+    moment_stiffness = (moment_stiffness - min_moment) / (max_moment - min_moment)
+
+
+    # Start iterative denoising
+    denoised_pos = pos.clone()
+    denoised_q = q.clone()
+
+
+    #Denoising with diffusion model
+    t_all = torch.arange(num_denoising_steps, device=denoised_pos.device)
+    with torch.no_grad():
+        #Denoising
+        for t in t_all:
+            
+            noise = model(denoised_pos, denoised_q, t, force_model, moment_model)
+            denoised_pos -= noise[:, :, 0:3]
+            denoised_q = quaternion_multiply(denoised_q, quaternion_inverse(noise[:, :, 3:]))
+
+    
+
+    #Denormalize
+    denoised_pos = denoised_pos * (max_pos - min_pos) + min_pos
+    pos_0 = pos_0 * (max_pos - min_pos) + min_pos
+    noisy_pos = pos * (max_pos - min_pos) + min_pos
+    force_model = force_model * (max_force - min_force) + min_force
+    force_stiffness = force_stiffness * (max_force - min_force) + min_force
+    moment_model = moment_model * (max_moment - min_moment) + min_moment
+    moment_stiffness = moment_stiffness * (max_moment - min_moment) + min_moment
+    # Now convert to numpy for postprocessing
+    force_np_model = force_model[0].cpu().numpy()#force_np = np.squeeze(force_np, axis=0)  # (T, 3)
+    force_np_stiffness = force_stiffness[0].cpu().numpy()#force_stiffness_np = np.squeeze(force_stiffness_np, axis=0)  # (T, 3)
+    moment_np_model = moment_model[0].cpu().numpy()#moment_np = np.squeeze(moment_np, axis=0)  # (T, 3)
+    moment_np_stiffness = moment_stiffness[0].cpu().numpy()#moment_stiffness_np = np.squeeze(moment_stiffness_np, axis=0)  # (T, 3)
+    noisy_pos_np = noisy_pos[0].cpu().numpy()#noisy_pos_np = np.squeeze(noisy_pos_np, axis=0)  # (T, 3)
+    denoised_pos_np = denoised_pos[0].cpu().numpy()#denoised_pos_np = np.squeeze(denoised_pos_np, axis=0)  # (T, 3)
+    pos_0_np = pos_0[0].cpu().numpy()#command_pos_0_np = np.squeeze(command_pos_0_np, axis=0)  # (T, 3)
+    noisy_q_np = q[0].cpu().numpy()#noisy_q_np = np.squeeze(noisy_q_np, axis=0)  # (T, 4)
+    denoised_q_np = denoised_q[0].cpu().numpy()#denoised_q_np = np.squeeze(denoised_q_np, axis=0)  # (T, 4)
+    dx_np = np.squeeze(dx_np)
+    omega_np = np.squeeze(omega_np)
+
+
+    #______postprocess data__________
+    # Apply smoothing using a moving average filter
+    window_size = 4
+    denoised_pos = denoised_pos.transpose(1, 2)  # [1, 3, T]
+    # Create a separate kernel for each channel (3 total)
+    kernel = torch.ones(3, 1, window_size, device=denoised_pos.device) / window_size  # [3, 1, W]
+    # Apply conv1d with groups=3 to treat each channel independently
+    denoised_pos = F.conv1d(denoised_pos, kernel, padding=window_size//2, groups=3)
+    # Convert back to original shape
+    denoised_pos = denoised_pos.transpose(1, 2)  # back to [1, T, 3]
+    denoised_q_np = smooth_quaternions_slerp(torch.tensor(denoised_q_np), window_size=window_size, smoothing_factor=0.5).numpy()
+
+    # Remove offsets
+    #position
+    denoised_pos_for_offset = denoised_pos_np[np.newaxis, :, :]  # (1, T, 3)
+    # compute offset
+    offset_pos = np.mean(pos_0_np[0:1,:] - denoised_pos_for_offset[:, :1, :], axis=1)  # shape (1, 3)
+    # squeeze offset (remove batch dimension)
+    offset_pos = np.squeeze(offset_pos, axis=0)  # shape (3,)
+    denoised_pos_np += offset_pos[np.newaxis, :]
+
+    #quaternion
+    q_offset = quaternion_multiply(q_0[:,0, :], quaternion_inverse(denoised_q[:, 0, :]))
+    denoised_q = quaternion_multiply(q_offset.unsqueeze(1).expand(-1, denoised_q.shape[1], -1), denoised_q)
+    denoised_q_np = denoised_q.detach().cpu().numpy()
+    # Convert to numpy and squeeze
+    denoised_q_np = np.squeeze(denoised_q_np)        # (T, 4)
+    noisy_q_np = np.squeeze(noisy_q_np)              # (T, 4)
+    clean_q_before = np.squeeze(clean_q_before)      # (T, 4)
+
+
+    #_________compute stiffness___________
+    T = clean_q_before.shape[0]  # Sequence length
+    gamma = 1.0
+
+    # Prepare data for stiffness estimation ---
+    denoised_q_np_flat = denoised_q_np # (T, 4)
+    omega = omega_np  # (T, 3)
+    force = force_np_stiffness  # (T, 3)
+    moment = moment_np_stiffness  # (T, 3)
+
+    # Replace forces and moments with constant values, maintaining the same shape
+    axis_denoised, theta_denoised = quat_to_axis_angle_stiff(denoised_q_np_flat) # transform to axis-angle representation
+    theta_denoised = theta_denoised * 0.5 #for scaling of cpp code from data collection
+
+    e_lin = denoised_pos_np - noisy_pos_np  # shape (T, 3)
+    e_rot = axis_denoised * theta_denoised#[:, None]  # (T, 3)
+    dt = 0.005  
+    e_dot = np.gradient(e_lin, dt, axis=0)
+
+
+    # Calculate the stiffness
+    K_t_raw, K_r_raw, gamma = estimate_stiffness_per_window(
+        axis_denoised[0:T],
+        e_lin[0:T],
+        e_dot[0:T],
+        e_rot[0:T],
+        omega[0:T],
+        force[0:T],
+        moment[0:T],
+        gamma
+        )
+    
+    # Smooth the stiffness values
+    K_t = smooth_stiffness(K_t_raw, K_t_prev, iteration)
+    K_r = smooth_stiffness(K_r_raw, K_r_prev, iteration)
+
+    return K_r, K_t, denoised_pos_np, denoised_q_np

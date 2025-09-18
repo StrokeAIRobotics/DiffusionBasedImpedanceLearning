@@ -250,3 +250,131 @@ def quaternion_to_axis(q):
     u = np.where(sin_half_theta[:, np.newaxis] > 1e-6, xyz / sin_half_theta[:, np.newaxis], np.zeros_like(xyz))
 
     return u
+
+
+def quat_to_axis_angle_stiff(q):
+                """
+                Converts a sequence of quaternions (N, 4) to axis (N, 3) and angle (N, 1) arrays.
+                Ensures the scalar part (w) is always non-negative for consistency.
+                Args:
+                    q: numpy array of shape (N, 4) in (w, x, y, z) format.
+                Returns:
+                    axis: numpy array of shape (N, 3)
+                    angle: numpy array of shape (N, 1)
+                """
+                q = q / (np.linalg.norm(q, axis=1, keepdims=True) + 1e-8)
+                # Flip quaternion if w < 0 to ensure positive hemisphere
+                flip_mask = q[:, 0] < 0
+                q[flip_mask] = -q[flip_mask]
+
+                w = q[:, 0:1]  # shape (N, 1)
+                xyz = q[:, 1:]  # shape (N, 3)
+                angle = 2.0 * np.arccos(np.clip(w, -1.0, 1.0))  # shape (N, 1)
+                sin_half_angle = np.sqrt(1.0 - np.clip(w**2, 0.0, 1.0))  # shape (N, 1)
+
+                axis = np.zeros_like(xyz)
+                mask = (sin_half_angle > 1e-8).flatten()
+                axis[mask] = xyz[mask] / sin_half_angle[mask]
+                axis[~mask] = np.array([1.0, 0.0, 0.0])  # arbitrary axis if angle ≈ 0
+
+                return axis, angle
+
+
+
+def estimate_stiffness_per_window(u_0, e_lin_win, e_dot_win,
+                                                 e_rot_win, omega_win,
+                                                 F_win, M_win, gamma):
+    """
+    Estimate stiffness for a given window of data, scaling drop per axis by relative motion.
+    Args:
+        e_lin_win (numpy array): Linear error for the window.
+        e_dot_win (numpy array): Linear velocity for the window.
+        e_rot_win (numpy array): Rotational error for the window.
+        omega_win (numpy array): Angular velocity for the window.
+        F_win (numpy array): Force for the window.
+        M_win (numpy array): Moment for the window.
+        gamma (float): Damping factor. 
+    Returns:
+        K_t (numpy array): Translational stiffness.
+        K_r (numpy array): Rotational stiffness.
+        gamma (float): Damping factor. 
+    """
+
+    K_t = np.zeros(3)
+    K_r = np.zeros(3)
+    K_t_max = 800.0                             
+    K_r_max = 150.0                             
+    epsilon = 1e-6
+    force_thresh = 0.2
+    moment_thresh = 1.0
+    aggression_factor_trans = 10
+    aggression_factor_rot = 2                   #.2
+
+    # Compute per-axis norms (magnitudes)
+    trans_axis_norms = np.linalg.norm(e_lin_win, axis=0)  # [vx, vy, vz] magnitudes
+    rot_axis_norms = np.linalg.norm(u_0, axis=0)    # [wx, wy, wz] magnitudes
+
+    # Compute total sum across axes (avoid raw magnitude influence)
+    sum_trans = np.sum(trans_axis_norms) + epsilon
+    sum_rot = np.sum(rot_axis_norms) + epsilon
+
+    # Compute relative importance per axis (unitless, normalized)
+    rel_trans_importance = trans_axis_norms / sum_trans  # fraction per axis
+    rel_rot_importance = rot_axis_norms / sum_rot        # fraction per axis
+
+    for i in range(3):
+        # Translational stiffness
+        e_i = e_lin_win[:, i] - gamma * e_dot_win[:, i]
+        f_i = F_win[:, i]
+        if np.max(np.abs(f_i)) < force_thresh:
+            k_t_i = K_t_max
+        else:
+            k_drop = np.abs(np.dot(f_i, e_i)) / (np.dot(e_i, e_i) + epsilon)
+            # Scale drop: more motion → smaller drop
+            scale_factor = 1 - rel_trans_importance[i]  # invert to drop less on active axes
+            k_drop *= aggression_factor_trans * scale_factor            # WAS COMMENTED OUT!!!
+            k_t_i = np.clip(K_t_max - k_drop, 0.0, K_t_max)
+        K_t[i] = k_t_i
+
+        # Rotational stiffness
+        r_i = e_rot_win[:, i] - gamma * omega_win[:, i]
+        m_i = M_win[:, i]
+        if np.max(np.abs(m_i)) < moment_thresh:
+            k_r_i = K_r_max
+        else:
+            k_drop_r = np.abs(np.dot(m_i, r_i)) / (np.dot(r_i, r_i) + epsilon)
+            scale_factor_r = 1 - rel_rot_importance[i]
+            k_drop_r *= aggression_factor_rot * scale_factor_r            # WAS COMMENTED OUT!!!
+            k_r_i = np.clip(K_r_max - k_drop_r, 0.0, K_r_max)
+        K_r[i] = k_r_i
+
+    return K_t, K_r, gamma
+
+def smooth_stiffness(K_raw, K_prev, iteration, alpha=0.15, max_step=30.0, warmup_steps=40):
+    """
+    Smooth the stiffness values using exponential smoothing.
+    Args:
+        K_raw (numpy array): Raw stiffness values.
+        K_prev (numpy array): Previous stiffness values (should be initialized to K_raw[0]).
+        iteration (int): Current time step.
+        alpha (float): Smoothing factor.
+        max_step (float): Maximum step size for smoothing.
+        warmup_steps (int): Number of steps to bypass clipping to prevent initial drop.
+    Returns:
+        K_smooth (numpy array): Smoothed stiffness values.
+    """
+
+    if iteration < warmup_steps:
+            # No clipping during warmup
+
+            return K_raw
+    else:
+        K_smooth = np.zeros(3)
+        for i in range(3):
+            k_exp = alpha * K_raw[i] + (1 - alpha) * K_prev[i]
+    
+            # Apply clipping to prevent large jumps
+            k_lim = np.clip(k_exp, K_prev[i] - max_step, K_prev[i] + max_step)
+            K_smooth[i] = k_lim
+
+    return K_smooth
