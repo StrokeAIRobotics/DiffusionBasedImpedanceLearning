@@ -5,7 +5,7 @@ import os
 import glob
 
 # Directory containing .bin files
-binary_folder = "/home/newman_lab/Desktop/noah_repo/thesis-mit/AppleVisionPro/pegInHole/prints"
+binary_folder = "YOUR_DIRECTORY_PATH_HERE"
 
 # Define the correct number of categories (columns)
 column_count = 21 + 24 #-24 for old data

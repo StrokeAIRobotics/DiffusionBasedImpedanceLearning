@@ -29,7 +29,7 @@ def main():
     input_dim = seq_length * 3  # Flattened input dimension
     hidden_dim = 512 #hidden dim of the model
     batch_size =64 #batch size
-    num_epochs = 25 #number of epochs
+    num_epochs = 20 #number of epochs
     learning_rate = 1e-4 #learning rate
     noiseadding_steps = 5 # Number of steps to add noise
     use_forces = True  # Set this to True if you want to use forces as input to the model
@@ -42,7 +42,7 @@ def main():
     beta_end = 0.04 #for the noise diffusion model
     max_grad_norm=7.0 #max grad norm for gradient clipping 
     add_gaussian_noise = False # to add additional guassian noise
-    early_stop_patience = 50 #for early stopping
+    early_stop_patience = 8 #for early stopping
     save_interval = 20
     save_path = "save_checkpoints/Test"
     timestamp = datetime.now().strftime("%Y-%"
@@ -64,9 +64,9 @@ def main():
     "early_stop_patience": early_stop_patience
     }
 
-    file_path = "/home/noah/repos/thesis-mit/ImpedanceLearning/Data/Parcour/RealData" #path to data txt files for training
-    file_path_application = "/home/noah/repos/thesis-mit/ImpedanceLearning/Data/Parcour/PushDown" #path to data for inference simulation 
-    
+    file_path = "D:\\Repos\\DiffusionBasedImpedanceAdaptation\\Data\\Parkour" #path to data txt files for training
+    file_path_application = "D:\\Repos\\DiffusionBasedImpedanceAdaptation\\Data\\Parkour\\ApplicationData" #path to data for inference simulation/whole sequence
+
     # Load real data
     #data = load_robot_data(file_path, seq_length, use_overlap=True)
     data = load_robot_data(file_path, seq_length, use_overlap=True)

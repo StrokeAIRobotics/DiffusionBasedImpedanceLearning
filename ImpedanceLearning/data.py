@@ -186,8 +186,6 @@ def load_robot_data(folder_path, seq_length, use_overlap=True):
                     clean_angle = np.stack([df["theta0"].iloc[i:i + seq_length].values], axis=-1)
                     noisy_angle = np.stack([df["theta"].iloc[i:i + seq_length].values], axis=-1)
 
-
-
                     # Normalize axis vectors if not unit vectors
                     magnitudes_clean_axis = np.linalg.norm(clean_axis, axis=1, keepdims=True)
                     magnitudes_noisy_axis = np.linalg.norm(noisy_axis, axis=1, keepdims=True)
@@ -204,8 +202,6 @@ def load_robot_data(folder_path, seq_length, use_overlap=True):
                     # Convert to quaternions
                     clean_quaternion = axis_angle_to_quaternion(clean_axis, clean_angle)
                     noisy_quaternion = axis_angle_to_quaternion(noisy_axis, noisy_angle)
-
-
 
                     if not is_unit_quaternion(clean_quaternion):
                         print(f"Warning: non-unit clean quaternion in {filename}")
@@ -332,7 +328,6 @@ def compute_statistics_per_axis(data):
             valid_data = stacked[mask]
 
             if valid_data.size == 0:
-                print(f" No valid data found for '{key}' (all entries were -9999). Skipping.")
                 continue
 
             min_val = torch.tensor(np.min(valid_data, axis=0), dtype=torch.float32)
@@ -383,7 +378,6 @@ def normalize_data_per_axis(data, stats):
 
             if min_key not in stats or max_key not in stats:
                 norm_sample[key] = value  # No stats → return as-is
-                print(f" No stats for '{key}'. Skipping normalization.")
                 continue
 
             tensor_val = torch.tensor(value, dtype=torch.float32)

@@ -37,7 +37,7 @@ print("Python is ready. Ready flag set to 0.")
 #######################################################################
 #Define second shared memory parameters
 SHM_NAME_2 = "SharedMemory_2"
-SHM_SIZE_2 = (3 + 4 + 3 + 3 + 9 + 9 + 3 + 3 +3 +3 +7) *8 *16 + 8 # Change that
+SHM_SIZE_2 = 50 *8 *16 + 8 # Change that
 
 # Create second shared memory
 try:
@@ -52,7 +52,6 @@ version_2 = np.ndarray((1,), dtype=np.int64, buffer=shm_2.buf[:8])  # Ready flag
 data_2 = np.ndarray((16, 50), dtype=np.float64, buffer=shm_2.buf[8:])  # Change that
 
 # Initialize second shared memory
-#version_2[0] = -1  # Indicate that Python is initializing
 print("Python initialized second shared memory. Waiting for C++ to start...")
 
 # Set flag to 0 to signal readiness

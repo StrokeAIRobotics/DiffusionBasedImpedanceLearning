@@ -308,7 +308,7 @@ def estimate_stiffness_per_window(u_0, e_lin_win, e_dot_win,
     force_thresh = 0.2
     moment_thresh = 1.0
     aggression_factor_trans = 10
-    aggression_factor_rot = 2                   #.2
+    aggression_factor_rot = 2               
 
     # Compute per-axis norms (magnitudes)
     trans_axis_norms = np.linalg.norm(e_lin_win, axis=0)  # [vx, vy, vz] magnitudes

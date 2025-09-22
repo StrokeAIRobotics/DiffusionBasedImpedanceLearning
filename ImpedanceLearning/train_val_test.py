@@ -44,8 +44,7 @@ def train_model_diffusion(model, traindataloader, valdataloader,optimizer, crite
 
     # Initialize ReduceLROnPlateau
     lr_scheduler_patience = min(5, int(early_stop_patience * 0.32))  # Reduce LR after 1/3 of early stopping patience
-    #scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=lr_scheduler_patience, verbose=True)
-    scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=4, verbose=True)
+    scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=4)#, verbose=True)
 
 
 
@@ -54,7 +53,6 @@ def train_model_diffusion(model, traindataloader, valdataloader,optimizer, crite
         total_loss = 0
         
         # Use tqdm to create a progress bar
-
         for batch_idx, (pos_0, pos, q_0, q, force, moment, dx, omega, lambda_matrix, lambda_w_matrix) in enumerate(tqdm(traindataloader, desc=f"Epoch {epoch + 1}/{num_epochs}", leave=True)):
             
             # Move data to device
@@ -87,13 +85,11 @@ def train_model_diffusion(model, traindataloader, valdataloader,optimizer, crite
 
             # Predict the noise from the noisy pos
             if use_forces:
-                #predicted_noise = model(noisy_pos, noisy_q, force, moment) #without time
                 predicted_noise = model(noisy_pos, noisy_q, t, force, moment)
             
             else:
                 predicted_noise = model(noisy_pos, noisy_q, t)
-                #predicted_noise = model(noisy_pos, noisy_q) #without time
-
+            
             loss = criterion(predicted_noise[:,:,0:3], actual_noise_pos) + 4*  quaternion_loss(predicted_noise[:,:,3:], actual_noise_q)
 
             loss = loss / torch.clamp(noise_scale, min=1e-6) * 10000  # Normalize loss by noise scale
@@ -208,15 +204,13 @@ def validate_model_diffusion(model, dataloader, criterion, device, max_noiseaddi
 
             # Predict the noise from the noisy pos
             if use_forces:
-                #predicted_noise = model(noisy_pos, noisy_q, force, moment) #- without time
                 predicted_noise = model(noisy_pos, noisy_q, t, force, moment) #with timestep
 
             else:
                 predicted_noise = model(noisy_pos, noisy_q, t)
-                #predicted_noise = model(noisy_pos, noisy_q)
+
             # Calculate loss
             loss = criterion(predicted_noise[:,:,0:3], actual_noise_pos) + 4*  quaternion_loss(predicted_noise[:,:,3:], actual_noise_q)
-            #loss =  quaternion_loss(predicted_noise[:,:,3:], actual_noise_q)
             loss = loss / torch.clamp(noise_scale, min=1e-6) * 10000
             total_loss += loss.item()
 
@@ -268,7 +262,6 @@ def test_model(model, val_loader, val_dataset, device, use_forces, save_path, nu
             for i in range(num_denoising_steps):
                 t = torch.tensor(i).long().to(denoised_pos.device)
                 predicted_noise = model(denoised_pos, denoised_q, t, force, moment) if use_forces else model(denoised_pos, denoised_q, i)
-                #predicted_noise = model(denoised_pos, denoised_q, force, moment) if use_forces else model(denoised_pos, denoised_q) #without time
                 denoised_pos = denoised_pos - predicted_noise[:, :, 0:3]
                 denoised_q = quaternion_multiply(denoised_q, quaternion_inverse(predicted_noise[:, :, 3:]))
 
@@ -363,27 +356,7 @@ def test_model(model, val_loader, val_dataset, device, use_forces, save_path, nu
             q_loss = torch.mean((1 - dot_product) ** 2).item()
             mean_q_diffs.append(q_loss)
 
-            # Loop over position components
-            components = ['x', 'y', 'z']
-            for i, comp in enumerate(components):
-                fig, ax_traj = plt.subplots(1, 1, figsize=(12, 6))
-
-                ax_traj.plot(clean_pos_np[0, :, i], label=f'Clean (ground truth) {comp}', linewidth=3.5, color='darkblue')
-                ax_traj.plot(denoised_pos_np[0, :, i], linestyle='--', label=f'Denoised (diffusion model) {comp}', linewidth=3.5, color='darkgreen')
-
-                ax_traj.set_xlabel('Time Step', fontsize=16, fontweight='bold')
-                ax_traj.set_ylabel(rf'$\tilde{{{comp}}}_o$ Position', fontsize=16, fontweight='bold')
-                ax_traj.set_title(f'Clean vs Denoised Position ({comp}-axis) - Sample {sample_idx+1}',
-                                fontsize=18, fontweight='bold')
-
-                ax_traj.legend(fontsize=14)
-                ax_traj.grid(True, linestyle="--", linewidth=1, alpha=0.7)
-                ax_traj.tick_params(axis='both', labelsize=14, width=2.5, length=8)
-
-                plot_filename = os.path.join(save_path, f"pos_sample_{sample_idx+1}_{comp}.png")
-                plt.savefig(plot_filename, dpi=300, bbox_inches='tight')
-                plt.close(fig)
-
+           
         
 
     # Define the path for the results file
@@ -391,14 +364,13 @@ def test_model(model, val_loader, val_dataset, device, use_forces, save_path, nu
 
     # Prepare the results text
     results_text = (
-        f"\nMean Absolute Differences Across {num_samples} Samples:\n"
+        f"\nMean Absolute Differences in Testing"
         f"X-axis: {np.mean(mean_diffs_pos_x):.6f}\n"
         f"Y-axis: {np.mean(mean_diffs_pos_y):.6f}\n"
         f"Z-axis: {np.mean(mean_diffs_pos_z):.6f}\n"
         f"Overall: {np.mean(overall_mean_diffs_pos):.6f}\n\n"
         f"Theta: {np.mean(mean_diffs_theta):.6f}\n"
         f"Alpha: {np.mean(mean_diffs_axis_alpha):.6f}\n"
-        f"Mean Quaternion Difference: {np.mean(mean_q_diffs):.15f}\n"
     )
 
     # Print results to console
@@ -443,20 +415,9 @@ def inference_simulation(model, application_loader, application_dataset, device,
     #mean for stiffness
     mean_diffs_k_t = []
     mean_diffs_k_r = []
-    gt_k_t_values = []
-    gt_k_r_values = []
     mean_q_diffs = []
     theta_losses = []
     alpha_losses = []
-    cos_sims_rot_gt = []
-    cos_sims_rot = []
-
-
-    K_t_prev_gt = np.full(3, 650.0)  # Initial value for translational stiffness
-    K_r_prev_gt = np.full(3, 100.0) 
-    K_t_prev = np.full(3, 650.0)  # Initial value for translational stiffness
-    K_r_prev = np.full(3, 100.0) 
-  
 
 
     # Persistent storage for all data
@@ -481,7 +442,6 @@ def inference_simulation(model, application_loader, application_dataset, device,
             for i in range(num_denoising_steps):
                 t = torch.tensor(i).long().to(denoised_pos.device)
                 predicted_noise = model(denoised_pos, denoised_q, t, force, moment) if use_forces else model(denoised_pos, denoised_q,i)
-                #predicted_noise = model(denoised_pos, denoised_q, force, moment) if use_forces else model(denoised_pos, denoised_q) #without time
                 denoised_pos = denoised_pos - predicted_noise[:, :, 0:3]
                 denoised_q = quaternion_multiply(denoised_q, quaternion_inverse(predicted_noise[:, :, 3:]))
 
@@ -493,13 +453,6 @@ def inference_simulation(model, application_loader, application_dataset, device,
             force_np = application_dataset.denormalize(force.detach().cpu(), "force").numpy()
             moment_np = application_dataset.denormalize(moment.detach().cpu(), "moment").numpy()
             
-            lambda_w_matrix_np = application_dataset.denormalize(lambda_w_matrix.detach().cpu(), "lambda_w").numpy()
-            lambda_matrix_np = application_dataset.denormalize(lambda_matrix.detach().cpu(), "lambda").numpy()
-
-            dx_np = application_dataset.denormalize(dx.detach().cpu(), "dx").numpy()
-
-            omega_np = application_dataset.denormalize(omega.detach().cpu(), "omega").numpy()
-
             # Denormalize quaternions
             noisy_q_np = noisy_q.detach().cpu().numpy()
             clean_q_np = clean_q.detach().cpu().numpy()
@@ -525,100 +478,6 @@ def inference_simulation(model, application_loader, application_dataset, device,
             T = clean_pos_np.shape[1]  # Sequence length
             time_array = np.arange(T) * 0.005  # Ensure time increments correctly
 
-                  
-            # #Stiffness estimation
-            # # Prepare data for stiffness estimation ---
-            # T = clean_pos_np.shape[1]  # Sequence length
-            # K_t_full_gt = np.zeros((T, 3))
-            # K_r_full_gt = np.zeros((T, 3))
-            # K_t_full = np.zeros((T, 3))
-            # K_r_full = np.zeros((T, 3))
-            # gamma = 1.0
-
-            # clean_q_np_flat = clean_q_np[0]  # (T, 4)
-            # denoised_q_np_flat = denoised_q_np[0]  # (T, 4)
-            # omega = omega_np[0]  # (T, 3)
-            # force = force_np[0]  # (T, 3)
-            # moment = moment_np[0]  # (T, 3)
-
-            # # Calculate errors and derivatives
-            # axis_clean, theta_clean = quat_to_axis_angle_stiff(clean_q_np_flat) # transform to axis-angle representation
-            # axis_denoised, theta_denoised = quat_to_axis_angle_stiff(denoised_q_np_flat) # transform to axis-angle representation
-            # axis_noisy, theta_noisy = quat_to_axis_angle_stiff(noisy_q_np[0]) # transform to axis-angle representation
-
-            # theta_clean = theta_clean * 0.5 #for scaling of cpp code from data collection
-            # theta_denoised = theta_denoised * 0.5 #for scaling of cpp code from data collection
-            # theta_noisy = theta_noisy * 0.5 #for scaling of cpp code from data collection
-
-            # e_lin_gt = noisy_pos_np[0] - clean_pos_np[0]  # shape (T, 3)
-            # e_rot_gt = axis_clean * theta_clean#[:, None]  # (T, 3)
-            # e_lin = noisy_pos_np[0] - denoised_pos_np[0]  # shape (T, 3)
-            # e_rot = axis_denoised * theta_denoised#[:, None]  # (T, 3)
-            # e_rot_lin_gt = axis_denoised #- axis_clean
-            # e_rot_lin = axis_denoised #- axis_clean
-            
-
-            # dt = 0.005  
-            # e_dot_gt = np.gradient(e_lin_gt, dt, axis=0)
-            # e_dot = np.gradient(e_lin, dt, axis=0)
-            # # Calculate the stiffness
-            # #K_t_raw_gt, K_r_raw_gt, gamma = estimate_stiffness_per_window_push_down(
-            # K_t_raw_gt, K_r_raw_gt, gamma, cos_sims_rot_gt = estimate_stiffness_per_window_physical_therapy_new(
-            #         e_lin_gt[0:clean_pos_np.shape[1]],
-            #         e_dot_gt[0:clean_pos_np.shape[1]],
-            #         e_rot_gt[0:clean_pos_np.shape[1]],
-            #         e_rot_lin_gt[0:clean_pos_np.shape[1]], #outcomment this for push down
-            #         omega[0:clean_pos_np.shape[1]],
-            #         force[0:clean_pos_np.shape[1]],
-            #         moment[0:clean_pos_np.shape[1]],
-            #         gamma
-            #     )
-
-            # #K_t_raw, K_r_raw, gamma = estimate_stiffness_per_window_push_down(
-            # K_t_raw, K_r_raw, gamma, cos_sims_rot = estimate_stiffness_per_window_physical_therapy_new(
-            #         e_lin[0:clean_pos_np.shape[1]],
-            #         e_dot[0:clean_pos_np.shape[1]],
-            #         e_rot[0:clean_pos_np.shape[1]],
-            #         e_rot_lin[0:clean_pos_np.shape[1]], #outcomment this for push down 
-            #         omega[0:clean_pos_np.shape[1]],
-            #         force[0:clean_pos_np.shape[1]],
-            #         moment[0:clean_pos_np.shape[1]],
-            #         gamma
-            #     )
-            
-
-
-            # # Smooth the stiffness values
-            # K_t_gt = smooth_stiffness(K_t_raw_gt, K_t_prev_gt)
-            # K_r_gt = smooth_stiffness(K_r_raw_gt, K_r_prev_gt)
-            # K_t = smooth_stiffness(K_t_raw, K_t_prev)
-            # K_r = smooth_stiffness(K_r_raw, K_r_prev)
-            # K_t_prev_gt = K_t_gt
-            # K_r_prev_gt = K_r_gt
-            # K_t_prev = K_t
-            # K_r_prev = K_r
-
-            # K_t_full_gt[0:clean_pos_np.shape[1]] = K_t_gt
-            # K_r_full_gt[0:clean_pos_np.shape[1]] = K_r_gt
-            # K_t_full[0:clean_pos_np.shape[1]] = K_t
-            # K_r_full[0:clean_pos_np.shape[1]] = K_r
-
-            # # Store the stiffness values for each frame
-            # stiffness_trans_per_frame = K_t_full
-            # stiffness_rot_per_frame = K_r_full
-            # stiffness_trans_gt_per_frame = K_t_full_gt  
-            # stiffness_rot_gt_per_frame = K_r_full_gt
-
-            # # Compute error vectors (optional per-step or mean later)
-            # mean_diff_k_t = np.abs(stiffness_trans_gt_per_frame - stiffness_trans_per_frame)
-            # mean_diff_k_r = np.abs(stiffness_rot_gt_per_frame - stiffness_rot_per_frame)
-
-            # mean_diffs_k_t.append(mean_diff_k_t)
-            # mean_diffs_k_r.append(mean_diff_k_r)
-
-            # # Store for later analysis
-            # gt_k_t_values.append(stiffness_trans_gt_per_frame)
-            # gt_k_r_values.append(stiffness_rot_gt_per_frame)
 
             for t in range(T):
                 all_data.append([
@@ -631,12 +490,6 @@ def inference_simulation(model, application_loader, application_dataset, device,
                     *map(float, noisy_q_np[0, t, :]),
                     *map(float, force_np[0, t, :]),  # Expands (fx, fy, fz)
                     *map(float, moment_np[0, t, :]),  # Expands (mx, my, mz)
-                    #*map(float, stiffness_trans_gt_per_frame[t, :]),
-                    #*map(float, stiffness_rot_gt_per_frame[t, :]),
-                    #*map(float, cos_sims_rot_gt[t, :]),  # Expands (rx, ry, rz)
-                    #*map(float, stiffness_trans_per_frame[t, :]),
-                    #*map(float, stiffness_rot_per_frame[t, :]),
-                    #*map(float, cos_sims_rot[t, :]),  # Expands (rx, ry, rz)
 
                 ])
 
@@ -655,8 +508,6 @@ def inference_simulation(model, application_loader, application_dataset, device,
             denoised_q = denoised_q / (denoised_q.norm(dim=-1, keepdim=True) + 1e-8)
 
             dot_val = torch.sum(clean_q[0, 0] * denoised_q[0, 0]).item()
-            theta_rad = 2 * math.acos(min(1.0, abs(dot_val)))
-
 
             # Flip hemisphere
             dot = torch.sum(denoised_q * clean_q, dim=-1, keepdim=True)
@@ -708,77 +559,18 @@ def inference_simulation(model, application_loader, application_dataset, device,
             mean_q_diffs.append(q_loss)
 
 
-            # Create a separate figure for each sample
-            fig, ax_traj = plt.subplots(1, 1, figsize=(12, 6))  # Wider figure for better visibility
-
-            # Plot clean vs denoised pos (Y-axis only) with thicker lines
-            ax_traj.plot(clean_pos_np[0, :, 0], label='Clean (ground truth) x', linewidth=3.5, color='darkblue')
-            ax_traj.plot(denoised_pos_np[0, :, 0], linestyle='--', label='Denoised (diffusion model) x', linewidth=3.5, color='darkgreen')
-            ax_traj.plot(clean_pos_np[0, :, 1], label='Clean (ground truth) y', linewidth=3.5, color='darkblue')
-            ax_traj.plot(denoised_pos_np[0, :, 1], linestyle='--', label='Denoised (diffusion model) y', linewidth=3.5, color='darkgreen')
-            ax_traj.plot(clean_pos_np[0, :, 2], label='Clean (ground truth) z', linewidth=3.5, color='darkblue')
-            ax_traj.plot(denoised_pos_np[0, :, 2], linestyle='--', label='Denoised (diffusion model) z', linewidth=3.5, color='darkgreen')
-
-    
-            # Customize plot appearance with bold labels and increased font size
-            ax_traj.set_xlabel('Time Step', fontsize=16, fontweight='bold')
-            ax_traj.set_ylabel(r'$\tilde{y}_o$ Position', fontsize=16, fontweight='bold')  # Y-label with tilde notation
-            ax_traj.set_title(f'Clean vs denoised zero force pos in y-direction - Sample {seq_idx+1}', 
-                            fontsize=18, fontweight='bold')
-
-            ax_traj.legend(fontsize=14)
-
-            # Make grid lines more visible
-            ax_traj.grid(True, linestyle="--", linewidth=1, alpha=0.7)
-
-            # Increase tick label size and make ticks thicker
-            ax_traj.tick_params(axis='both', labelsize=14, width=2.5, length=8)
-
-            # Define save path for the plot
-            plot_filename = os.path.join(save_path, f"pos_sample_{seq_idx+1}.png")
-
-            # Save the figure
-            plt.savefig(plot_filename, dpi=300, bbox_inches='tight')
-
-            # Show plots without blocking execution
-            #plt.show(block=False)
-
-            # Close the figure to free memory
-            plt.close(fig)
-
-
-
-
-
-    # # Compute mean absolute error
-    # mean_k_t_error = np.mean(mean_diffs_k_t)
-    # mean_k_r_error = np.mean(mean_diffs_k_r)
-
-    # # Compute average ground truth stiffness
-    # avg_gt_k_t = np.mean(gt_k_t_values)
-    # avg_gt_k_r = np.mean(gt_k_r_values)
-
-    # # Compute percentage errors
-    # percent_error_k_t = (mean_k_t_error / avg_gt_k_t) * 100 if avg_gt_k_t != 0 else 0
-    # percent_error_k_r = (mean_k_r_error / avg_gt_k_r) * 100 if avg_gt_k_r != 0 else 0
-
     # Define the path for the results file
     results_file = os.path.join(save_path, "test_results.txt")
 
     # Prepare the results text
     results_text = (
-        f"\nMean Absolute Differences Across Samples:\n"
+        f"\nMean Absolute Differences in Inference Simulation:\n"
         f"X-axis: {np.mean(mean_diffs_pos_x):.6f}\n"
         f"Y-axis: {np.mean(mean_diffs_pos_y):.6f}\n"
         f"Z-axis: {np.mean(mean_diffs_pos_z):.6f}\n"
         f"Overall: {np.mean(overall_mean_diffs_pos):.6f}\n\n"
         f"Theta: {np.mean(mean_diffs_theta):.6f}\n"
         f"Alpha: {np.mean(mean_diffs_axis_alpha):.6f}\n"
-        f"Mean Stiffness Translational: {np.mean(mean_diffs_k_t):.6f}\n"
-        f"Mean Stiffness Rotational: {np.mean(mean_diffs_k_r):.6f}\n"
-        #f"Mean Translational Stiffness Error: {mean_k_t_error:.6f} (Percentage: {percent_error_k_t:.2f}%)\n"
-        #f"Mean Rotational Stiffness Error: {mean_k_r_error:.6f} (Percentage: {percent_error_k_r:.2f}%)\n"
-        #f"Mean Quaternion Difference: {np.mean(mean_q_diffs):.15f}\n"
             )
 
     print(results_text)
@@ -790,13 +582,7 @@ def inference_simulation(model, application_loader, application_dataset, device,
     print(f"Test results saved to {results_file}")
 
 
-    # Keep plots open until the user closes them
-    #plt.pause(0.1)
-    #input("Press Enter to close all plots and continue...")
-    plt.close('all')
-
-
-        # Convert to DataFrame and save once at the end
+    # Convert to DataFrame and save once at the end
     columns = [
         "Seq_Index", "Time",
         "Clean_X", "Clean_Y", "Clean_Z",
@@ -807,15 +593,11 @@ def inference_simulation(model, application_loader, application_dataset, device,
         "Noisy_Q_W", "Noisy_Q_X", "Noisy_Q_Y", "Noisy_Q_Z",
         "Force_X", "Force_Y", "Force_Z",
         "Moment_X", "Moment_Y", "Moment_Z",
-        "GT_Stiffness_TX", "GT_Stiffness_TY", "GT_Stiffness_TZ", "GT_Stiffness_RX", "GT_Stiffness_RY", "GT_Stiffness_RZ",
-        "GT_cos_simX", "GT_cos_simY", "GT_cos_simZ",
-        "Estimated_Stiffness_TX", "Estimated_Stiffness_TY", "Estimated_Stiffness_TZ", "Estimated_Stiffness_RX", "Estimated_Stiffness_RY", "Estimated_Stiffness_RZ",
-        "cos_simX", "cos_simY", "cos_simZ"
     ]
+
 
     df = pd.DataFrame(all_data, columns=columns)
     output_file = os.path.join(save_path, "inference_results.txt")
-
     # Save in tab-separated format
     df.to_csv(output_file, sep='\t', index=False)
 
