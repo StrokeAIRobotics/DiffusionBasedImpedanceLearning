@@ -114,6 +114,7 @@ private:
     Eigen::MatrixXd M_inv;
     Eigen::MatrixXd H;
     Eigen::MatrixXd R;
+    Eigen::MatrixXd R_model;
     Eigen::MatrixXd J;
 
     // Cartesian mass matrices & velocities
@@ -144,7 +145,9 @@ private:
     double* f_sens_ee = nullptr;              // points to {Fx,Fy,Fz,Mx,My,Mz}
 
     Eigen::VectorXd f_ext_ee;     // 3x1
+    Eigen::VectorXd f_ext_model;     // 3x1
     Eigen::VectorXd m_ext_ee;     // 3x1
+    Eigen::VectorXd m_ext_model;     // 3x1
     Eigen::VectorXd f_ext;        // 3x1 (base frame)
     Eigen::VectorXd m_ext;        // 3x1 (base frame)
 

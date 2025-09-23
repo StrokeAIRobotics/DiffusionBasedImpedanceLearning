@@ -130,6 +130,12 @@ MyLBRClient::MyLBRClient(double freqHz, double amplitude)
     H = Eigen::MatrixXd::Zero( 4, 4 );
     R = Eigen::MatrixXd::Zero( 3, 3 );
 
+    // Initialize R_ee_fs as a 3x3 matrix
+    R_model = Eigen::MatrixXd::Zero( 3, 3 );            // from correct orientation to wrong orientation
+    R_model <<  0.0, 1.0,  0.0,
+            -1.0, 0.0,  0.0,
+            0.0, 0.0,  1.0;
+
     H_ini = Eigen::MatrixXd::Zero( 4, 4 );
     R_ini = Eigen::MatrixXd::Zero( 3, 3 );
     p_ini = Eigen::VectorXd::Zero( 3, 1 );
@@ -277,7 +283,9 @@ MyLBRClient::MyLBRClient(double freqHz, double amplitude)
     f_ext_ee = Eigen::VectorXd::Zero( 3 );
     m_ext_ee = Eigen::VectorXd::Zero( 3 );
     f_ext = Eigen::VectorXd::Zero( 3 );
+    f_ext_model = Eigen::VectorXd::Zero( 3 );
     m_ext = Eigen::VectorXd::Zero( 3 );
+    m_ext_model = Eigen::VectorXd::Zero( 3 );
     f_ini = Eigen::Vector3d::Zero();
     m_ini = Eigen::Vector3d::Zero();
     
@@ -453,6 +461,12 @@ void MyLBRClient::command()
     
     m_ext_ee = m_ext_ee - m_ini; // Subtract initial moment through weight of end-effector
     m_ext = R * m_ext_ee;  
+
+    // Corrected force and moment for diffusion model
+    Eigen::VectorXd f_ext_ee_model = R_model * f_ext_ee;
+    f_ext_model = R * R_model * f_ext_ee;  
+    Eigen::VectorXd m_ext_ee_model = R_model * m_ext_ee; 
+    m_ext_model = R * R_model * m_ext_ee; 
 
     // ************************************************************
     // Get robot measurements
@@ -682,9 +696,9 @@ void MyLBRClient::runSharedMemoryThread()
                 shm_write_buffer[idx++] = q0_buffer[i].z();
                 shm_write_buffer[idx++] = q0_buffer[i].w();
                 for (int j = 0; j < 3; ++j) shm_write_buffer[idx++] = f_buffer[i](j);
-                for (int j = 0; j < 3; ++j) shm_write_buffer[idx++] = f_buffer_wrong[i](j);
+                for (int j = 0; j < 3; ++j) shm_write_buffer[idx++] = f_ext_model[i](j);
                 for (int j = 0; j < 3; ++j) shm_write_buffer[idx++] = m_buffer[i](j);
-                for (int j = 0; j < 3; ++j) shm_write_buffer[idx++] = m_buffer_wrong[i](j);
+                for (int j = 0; j < 3; ++j) shm_write_buffer[idx++] = m_ext_model[i](j);
             
                 for (int r = 0; r < 3; ++r)
                     for (int c = 0; c < 3; ++c)

@@ -102,10 +102,10 @@ try:
             q = data_2[:, 6:10]                             # Quaternion (x, y, z, w)
             q0 = data_2[: ,10:14]                            # Quaternion (x, y, z, w) - command
             force = data_2[:, 14:17]                       # Force (Fx, Fy, Fz)
-            force_wrong = data_2[:, 17:20]                        # Force (Fx, Fy, Fz)
+            force_model = data_2[:, 17:20]                        # Force (Fx, Fy, Fz)
             # Replace forces and moments with constant values, maintaining the same shape
             moment = data_2[:, 20:23]                      # Moment (Mx, My, Mz)
-            moment_wrong = data_2[:, 23:26]                   # Moment (Mx, My, Mz)
+            moment_model = data_2[:, 23:26]                   # Moment (Mx, My, Mz)
             lambda_matrix = data_2[:, 26:35].reshape(-1, 3, 3)  # Lambda_v (3x3 matrix)
             dx = data_2[:, 35:38]                          # Translational velocity
             omega = data_2[:, 38:41]                  # Angular velocity
@@ -121,9 +121,9 @@ try:
                 pos_0=pos_0,
                 q=q,
                 q_0=q0,
-                force_model=force_wrong,
+                force_model=force_model,
                 force_stiffness=force,
-                moment_model=moment_wrong,
+                moment_model=moment_model,
                 moment_stiffness=moment,
                 lambda_matrix_np=lambda_matrix,
                 dx_np=dx,
