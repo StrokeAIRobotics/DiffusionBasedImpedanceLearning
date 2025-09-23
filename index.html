@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Diffusion-Based Impedance Learning</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #fff;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 50px 20px;
+      text-align: center;
+    }
+
+    .top-logos {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 30px;
+      margin-bottom: 30px;
+    }
+
+    .top-logos img {
+      max-height: 80px;
+      height: auto;
+      object-fit: contain;
+    }
+
+    .strokeai-banner {
+      max-width: 100%;
+      height: auto;
+      margin: 40px 0;
+    }
+
+    h1 {
+      /* color: #003366; */
+      color: #8A1C2B;
+      font-size: 2.4em;
+      font-weight: 700;
+      margin-bottom: 0.3em;
+    }
+
+    h2 {
+      margin-top: 3em;
+      /* color: #003366; */
+      color: #8A1C2B;
+    }
+
+    .authors, .affiliations, p {
+      font-size: 1.05em;
+      line-height: 1.6;
+      color: #222;
+    }
+
+    .badges {
+      margin: 20px 0;
+    }
+
+    .badges a {
+      margin: 0 10px;
+      display: inline-block;
+    }
+
+    .wip {
+      margin: 30px auto;
+      max-width: 100px;
+    }
+
+    .video-block {
+      text-align: left;
+      margin-top: 30px;
+    }
+
+    .video-block strong {
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .video-block p {
+      margin-top: 0;
+      font-size: 0.95em;
+      color: #444;
+    }
+
+    .youtube-wrapper {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      margin-top: 15px;
+      margin-bottom: 25px;
+    }
+
+    .youtube-wrapper iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <div class="top-logos">
+      <img src="Images/ROBOTREHA_LOGO.jpg" class="left-img" alt="Rehabilitation Robot Sketch">
+      <div>
+        <img src="Images/KIT_LOGO.png" alt="KIT Logo">
+        &nbsp;&nbsp;
+        <img src="Images/MIT_LOGO.jpg" alt="MIT Logo">
+
+      </div>
+    </div>
+
+    <h1>Diffusion-Based Impedance Learning for Contact-Rich Manipulation Tasks</h1>
+
+    <div class="authors">
+      Noah Geiger<sup>1,2</sup>, Tamim Asfour<sup>1</sup>, Neville Hogan<sup>2,3</sup>, Johannes Lachner<sup>2,3</sup><br><br>
+      <div class="affiliations">
+        <sup>1</sup> KIT, Institute for Anthropomatics and Robotics, Germany<br>
+        <sup>2</sup> MIT, Department of Mechanical Engineering, USA<br>
+        <sup>3</sup> MIT, Department of Brain and Cognitive Sciences, USA
+      </div>
+    </div>
+
+    <div class="badges">
+      <a href="https://www.linkedin.com/in/noah-ng-geiger" target="_blank">
+        <img src="https://img.shields.io/badge/LinkedIn-Noah_Geiger-blue?logo=linkedin" alt="LinkedIn Noah Geiger">
+      </a>
+      <a href="https://www.linkedin.com/in/johannes-lachner-477785158" target="_blank">
+        <img src="https://img.shields.io/badge/LinkedIn-Johannes_Lachner-blue?logo=linkedin" alt="LinkedIn Johannes Lachner">
+      </a>
+    </div>
+
+    <div class="badges">
+      <a href="#"><img src="https://img.shields.io/badge/arXiv-Coming_Soon-lightgrey?logo=arxiv" alt="arXiv"></a>
+      <a href="#"><img src="https://img.shields.io/badge/GitHub-Repository-grey?logo=github" alt="GitHub"></a>
+    </div>
+
+    <h2>Abstract</h2>
+    <p>
+    We present a framework that combines diffusion-based generative models with physics-informed control to enable adaptive behavior 
+      in contact-rich manipulation tasks. The system is trained on human demonstrations captured through Apple Vision Pro teleoperation, 
+      where subjects guide the robot through physical environments under varying interaction conditions. A Transformer-based conditional 
+      diffusion model denoises both translational and rotational data, using quaternions to represent and reconstruct orientation. 
+      During deployment, the robot adapts its impedance in real time based on observed motion and force patterns. This approach enables safe, 
+      compliant, and task-specific interaction, with applications ranging from physical therapy to dynamic parkour.
+    </p>
+
+    <h2 id="data">Teleoperated Data Collection for Model Training</h2>
+
+    <div class="video-block">
+      <strong>1. Human-Guided Upper Limb Therapy Demonstration via Apple Vision Pro</strong>
+      <p>Teleoperation is used to record patient movements with varying levels of support, enabling the model to learn the dynamic relationship between force and motion.</p>
+      <div class="youtube-wrapper" style="aspect-ratio: 4 / 3;">
+        <iframe src="https://www.youtube.com/embed/AopwOd02GPs" allowfullscreen></iframe>
+      </div>
+    </div>
+
+    <div class="video-block">
+      <strong>2. Parkour Trajectory Demonstration via Teleoperation</strong>
+      <p>Teleoperation is used to guide the robot through physical obstacles, enabling the model to learn how interaction forces vary with pose and context.</p>
+      <div class="youtube-wrapper" style="aspect-ratio: 4 / 3;">
+        <iframe src="https://www.youtube.com/embed/A7IriNSKP2w" allowfullscreen></iframe>
+      </div>
+    </div>
+
+    <h2 id="deployment">Model Deployment in Real-World Contact Tasks</h2>
+
+    <div class="video-block">
+      <strong>1. Real-Time Adaptive Support in Upper Limb Therapy Deployment</strong>
+      <p>The robot autonomously assists with upper-limb rehabilitation by adjusting support in real time based on patient engagement.</p>
+      <div class="youtube-wrapper" style="aspect-ratio: 4 / 3;">
+        <iframe src="https://www.youtube.com/embed/c_CGfFk4054" allowfullscreen></iframe>
+      </div>
+    </div>
+
+    <div class="video-block">
+      <strong>2. Contact-Rich Robot Deployment in a Parkour Environment</strong>
+      <p>The robot performs a parkour task, adapting its impedance in real time to manage contact-rich interactions.</p>
+      <div class="youtube-wrapper" style="aspect-ratio: 1 / 1;">
+        <iframe src="https://www.youtube.com/embed/xgciy-8BG5o" allowfullscreen></iframe>
+      </div>
+    </div>
+
+    <h2 id="github">GitHub Repository</h2>
+    <p>Code will be released soon upon publication.</p>
+    <img src="https://img.icons8.com/ios-filled/100/000000/under-construction.png" class="wip" alt="Work in Progress">
+
+  </div>
+</body>
+</html>
