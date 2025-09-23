@@ -148,27 +148,10 @@
 
     <h2>Abstract</h2>
     <p>
-     To guarantee stability, robotic systems interacting with their environment must respect
-    the interconnection between their motion and interacting forces. This relationship is
-    captured by the principle of mechanical impedance. Existing learning-based methods
-    often fail to capture the bidirectional force–motion relationship or neglect rotational
-    components, limiting their applicability in physical interaction tasks. Classical
-    impedance controllers offer stability but lack generalization in dynamic and unstruc
-    tured environments due to their fixed or heuristically tuned impedance parameters.
-    This work proposes a Transformer-based conditional Diffusion Model that reconstructs
-    simulated Zero-Force Trajectories (sZFT) from end-effector motion and wrench data.
-    Translational and rotational components are denoised, with the latter handled using
-    a quaternion-based SLERP algorithm to preserve orientation geometry. Training
-    data is collected through markerless teleoperation using the Apple Vision Pro. The
-    reconstructed sZFT and the measured external wrenches are used to derive stiffness
-    profiles by equating the stored virtual elastic energy. These profiles are applied in real
-    time to adapt the robot’s impedance during task execution.
-    The system is evaluated across diverse interaction scenarios, including physical
-    human–robot interaction, end-effector navigation in unstructured environments and
-    upper-limb physical therapy. Experimental results show translational errors below
-    1 mmandrotational errors below 0.3°, significantly outperforming the requirements
-    (2 mmand 2.8°). This proposed framework enables adaptive, safe, and generalizable
-    robot behavior in contact-rich manipulation tasks.
+    Learning methods excel at motion generation in the information domain but are not primarily designed for physical interaction in the energy domain. Impedance Control shapes physical interaction but requires task-aware tuning by selecting feasible impedance parameters. We present Diffusion-Based Impedance Learning, a framework that combines both domains. A Transformer-based Diffusion Model with cross-attention to external wrenches reconstructs a simulated Zero-Force Trajectory (sZFT). This captures both translational and rotational task-space behavior. For rotations, we introduce a novel SLERP-based quaternion noise scheduler that ensures geometric consistency. The reconstructed sZFT is then passed to an energy-based estimator that updates stiffness and damping parameters. A directional rule is applied that reduces impedance along non-task axes while preserving rigidity along task directions.
+    Training data were collected for a parkour scenario and robotic-assisted therapy tasks using teleoperation with Apple Vision Pro. With only tens of thousands of samples, the model achieved sub-millimeter positional accuracy and sub-degree rotational accuracy. Its compact model size enabled real-time torque control and autonomous stiffness adaptation on a KUKA LBR iiwa robot. The controller achieved smooth parkour traversal within force and velocity limits and 30/30 success rates for cylindrical, square, and star peg insertions without any peg-specific demonstrations in the training data set.
+    All code for the Transformer-based Diffusion Model, the robot controller, and the Apple Vision Pro telemanipulation framework is publicly available. These results mark an important step towards Physical AI, fusing model-based control for physical interaction with learning-based methods for trajectory generation.
+
     </p>
 
     <h2 id="data">Teleoperated Data Collection for Model Training</h2>
