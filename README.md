@@ -33,6 +33,7 @@ conda activate ImpedanceLearning
 ```
 
 ## AVP Telemanipulation
+The KUKA LBR iiwa can be **telemanipulated using the Apple Vision Pro** to collect your own training data.
 Johannes: hardware
 
 
