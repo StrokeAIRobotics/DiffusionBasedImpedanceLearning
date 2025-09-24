@@ -183,11 +183,11 @@
 
 <!-- Row 1: Two videos side by side -->
 <div class="video-block">
-  <strong>Adaptive Robot Deployment in a Parkour Scenario</strong>
+  <strong>Model Deployment in a Parkour Scenario</strong>
   <p>
-    These videos compare the robot using constant stiffness parameters (left) versus diffusion-based adaptive impedance (right). 
-    With constant stiffness, the robot fails to complete the task due to speed limitations. 
-    With adaptive impedance, the robot successfully completes the task in real time.
+These videos compare the robot using constant stiffness parameters (left) versus diffusion-based adaptive impedance (right).
+With constant stiffness, the robot fails to complete the task due to speed and force limitations.
+With adaptive impedance, the robot successfully completes the task, smoothly traversing all obstacles.
   </p>
   <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; margin-bottom: 30px;">
     <div style="flex: 1 1 45%; max-width: 45%;">
@@ -205,10 +205,11 @@
 
 <!-- Row 2: Three videos side by side -->
 <div class="video-block">
-  <strong>Adaptive Robot Deployment in peg-in-hole tasks.</strong>
+  <strong>Model Deployment in peg-in-hole tasks.</strong>
   <p>
-    The robot performs peg insertion tasks with cylindrical, square, and star-shaped pegs using constant stiffness control. 
-    These trials highlight the challenges of fixed impedance in contact-rich environments.
+The robot performs peg insertion tasks with cylindrical, square, and star-shaped pegs using constant stiffness parameters.
+The cylindrical peg was inserted successfully in 30/30 trials, the square peg in 4/30 trials, and the star peg in none of the 30 trials. 
+These trials highlight the difficulty of choosing feasible fixed impedance in contact-rich environments.
   </p>
   <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; margin-bottom: 30px;">
     <div style="flex: 1 1 30%; max-width: 30%;">
@@ -233,8 +234,9 @@
 <div class="video-block">
   <strong>Robustness Across Repeated Trials</strong>
   <p>
-    With diffusion-based stiffness adaptation, the robot consistently succeeds across multiple trials and object types. 
-    This demonstrates the robustness and reliability of the learned impedance adaptation compared to constant stiffness control.
+Diffusion-Based Impedance Learning achieved a 30/30 success rate for all three peg types. These results high-light that with 
+increasing insertion complexity, more advanced strategies such as our diffusion-based approach become essential. The outcome is 
+particularly notable because the training data included only parkour and upper-limb rehabilitation data and no peg-in-hole demonstrations.
   </p>
   <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
     <div style="flex: 1 1 30%; max-width: 30%;">
