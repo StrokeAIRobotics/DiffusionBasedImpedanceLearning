@@ -29,12 +29,12 @@ cd DiffusionBasedImpedanceAdaptation
 conda env create -f environment.yml
 
 # Activate environment
-conda activate thesis
-
+conda activate ImpedanceLearning
+```
 
 ## AVP Telemanipulation
 Johannes: hardware
-Noah: Schnittstelle
+Noah: Schnitstelle
 Johannes: robot deployment
 
 ## Data
