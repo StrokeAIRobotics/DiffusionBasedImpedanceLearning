@@ -41,8 +41,7 @@ Johannes: hardware
 To telemanipulate the robot, the [TrackingStreamer app](https://github.com/Improbable-AI/VisionProTeleop) on the **Apple Vision Pro** must be started.  
 
 Afterwards, update the IP address in:  
-
-
+AVPTelemanipulation/avp_stream/VisionProCPPCommunication.py
 
 Then run the script to start the interface communication between the **Apple Vision Pro** and the **C++ robot controller**:  
 
