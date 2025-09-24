@@ -34,7 +34,22 @@ conda activate ImpedanceLearning
 
 ## AVP Telemanipulation
 Johannes: hardware
-Noah: Schnitstelle
+
+
+## AVP Telemanipulation (Interface)  
+
+To telemanipulate the robot, the [TrackingStreamer app](https://github.com/pulkitag/TrackingStreamer) on the **Apple Vision Pro** must be started.  
+
+Afterwards, update the IP address in:  
+
+
+
+Then run the script to start the interface communication between the **Apple Vision Pro** and the **C++ robot controller**:  
+
+```bash
+python AVPTelemanipulation/avp_stream/VisionProCPPCommunication.py
+```
+
 Johannes: robot deployment
 
 ## Data
