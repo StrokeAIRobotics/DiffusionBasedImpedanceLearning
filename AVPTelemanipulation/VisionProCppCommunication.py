@@ -4,7 +4,7 @@ from multiprocessing import shared_memory
 from avp_stream import VisionProStreamer
 
 
-avp_ip = "10.31.148.87"  # Replace with your Apple Vision Pro IP address
+avp_ip = "your_AVP_ip_adress"  # Replace with your Apple Vision Pro IP address
 s = VisionProStreamer(ip=avp_ip, record=True)
 finger_closed = True
 
