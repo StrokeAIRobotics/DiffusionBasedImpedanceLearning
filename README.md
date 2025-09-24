@@ -38,7 +38,7 @@ Johannes: hardware
 
 ## AVP Telemanipulation (Interface)  
 
-To telemanipulate the robot, the [TrackingStreamer app](https://github.com/pulkitag/TrackingStreamer) on the **Apple Vision Pro** must be started.  
+To telemanipulate the robot, the [TrackingStreamer app](https://github.com/Improbable-AI/VisionProTeleop) on the **Apple Vision Pro** must be started.  
 
 Afterwards, update the IP address in:  
 
