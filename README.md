@@ -15,6 +15,21 @@
 
 Learning methods excel at motion generation in the information domain but are not primarily designed for physical interaction in the energy domain. Impedance Control shapes physical interaction but requires task-aware tuning by selecting feasible impedance parameters. We present Diffusion-Based Impedance Learning, a framework that combines both domains. A Transformer-based Diffusion Model with cross-attention to external wrenches reconstructs a simulated Zero-Force Trajectory (sZFT). This captures both translational and rotational task-space behavior. For rotations, we introduce a novel SLERP-based quaternion noise scheduler that ensures geometric consistency. The reconstructed sZFT is then passed to an energy-based estimator that updates stiffness and damping parameters. A directional rule is applied that reduces impedance along non-task axes while preserving rigidity along task directions. Training data were collected for a parkour scenario and robotic-assisted therapy tasks using teleoperation with Apple Vision Pro. With only tens of thousands of samples, the model achieved sub-millimeter positional accuracy and sub-degree rotational accuracy. Its compact model size enabled real-time torque control and autonomous stiffness adaptation on a KUKA LBR iiwa robot. The controller achieved smooth parkour traversal within force and velocity limits and 30/30 success rates for cylindrical, square, and star peg insertions without any peg-specific demonstrations in the training data set. All code for the Transformer-based Diffusion Model, the robot controller, and the Apple Vision Pro telemanipulation framework is publicly available. These results mark an important step towards Physical AI, fusing model-based control for physical interaction with learning-based methods for trajectory generation.
 
+## Hardware Setup
+
+- **Robot:** KUKA **LBR iiwa** (7 DOF) in **torque control** via **FRI** at **5 ms** sample time. Built-in gravity and Coriolis/centrifugal compensation remain active.  
+- **Kinematics/Dynamics:** Computed in C++ via the **Exp[licit]-FRI** interface.  
+- **External Wrenches:** **ATI Gamma** force/torque transducer on the flange (Fx,Fy,Fz,Mx,My,Mz).  
+- **Baseline Controller Params:**  
+  - Translational baseline stiffness: **800 N/m**  
+  - Rotational baseline stiffness: **150 Nm/rad**  
+  - Damping proportional to stiffness (see controller appendices in paper).  
+  - Force/moment thresholds for adaptation: **1 N** and **1 Nm**.  
+- **Safety Stops (parkour experiments):** **‖v‖ = 0.24 m/s** and **‖f_ext‖ = 20 N**.  
+- **Teleoperation (data collection):** **Apple Vision Pro** (VisionProTeleop) streams 6-DoF hand pose over shared memory to the C++ controller (ZFT-based telemanipulation).  
+- **Workpieces/Fixtures:** Parkour obstacles (bumper, circular target, ramp, tabletop) and peg-in-hole with **cylindrical**, **square**, and **star** pegs. All parts were **3D-printed on a PRUSA i3 MK3 (PLA)**. CAD and videos are linked on the project page.
+
+---
 
 ## Environment Setup  
 
@@ -33,30 +48,26 @@ conda activate ImpedanceLearning
 ```
 
 ## AVP Telemanipulation
+
+### Interface
+
 The KUKA LBR iiwa can be **telemanipulated using the Apple Vision Pro** to collect your own training data.
-Johannes: hardware
-
-
-## AVP Telemanipulation (Interface)  
 
 To telemanipulate the robot, the [TrackingStreamer app](https://github.com/Improbable-AI/VisionProTeleop) on the **Apple Vision Pro** must be started.  
 
 Afterwards, update the IP address in:  
-AVPTelemanipulation/avp_stream/VisionProCPPCommunication.py
+`AVPTelemanipulation/avp_stream/VisionProCPPCommunication.py`
 
 Then run the script to start the interface communication between the **Apple Vision Pro** and the **C++ robot controller**:  
 
 ```bash
 python AVPTelemanipulation/avp_stream/VisionProCPPCommunication.py
 ```
-## AVP Telemanipulation (Robot Deployment) 
-Johannes: robot deployment
 
 ## Data for Training and Inference Simulation
 The model can be trained and evaluated on data collected via the telemanipulation procedure described above.  
 Alternatively, the dataset provided in `Data/Parkour` can be used directly.  
 This dataset was collected with the same teleoperation method and can serve as a starting point for both training and inference simulations.
-
 
 ## Impedance Learning
 
@@ -65,6 +76,7 @@ An example training and inference script is provided:
 ```bash
 python ImpedanceLearning/DiffusionModel.py
 ```
+
 This script demonstrates the complete workflow:
 - Hyperparameters can be configured (e.g., number of noise-adding steps, beta start/end values, and many more).
 - Training, validation, and test data are automatically loaded.
@@ -73,8 +85,74 @@ This script demonstrates the complete workflow:
 
 This file is intended as an example of how to use the framework and can be extended or adapted for custom experiments.
 
+---
 
-## Robot deployment
-hardware (iiwa type, force sensor)
-build + debug + run (command in terminal)
-Johannes
+## Robot Deployment (C++)
+
+This repository includes a C++ torque-control client for the LBR iiwa that implements **energy-based impedance** with **directional stiffness adaptation** around the reconstructed **sZFT**.
+
+### Code TODOs (from `MyLBRClient.cpp`)
+Search for these tags and set them for your setup:
+
+- `// TODO[CONFIG]: Verify/replace with YOUR initial robot configuration (must match Java app)`
+- `// TODO[TOOL]: Choose the point position on your tool (in TOOL coordinates)`
+- `// TODO[GAINS]: Tune Kp (N/m) and Kr (Nm/rad) for your application`
+- `// TODO[DAMPING]: Tune joint-space damping if needed`
+- `// TODO[TRAJ]: Put your trajectory filename here (must exist under basePath)`
+- `// TODO[PATH]: Point this to your data directory (relative or absolute)`
+- `// TODO[FT]:  initialize your force-torque sensor here`
+- `// TODO[FT]: Acquire your force sensor data here`
+- `// TODO[CTRL]: Tune least-squares reg if needed`
+- `// TODO[GAINS]: Tune damping factors if needed`
+- `// TODO[PY]: Set the correct path to your Python script`
+- `// TODO[PY]: Ensure the Python script path in startPythonScript() is correct and accessible`
+- `// TODO[ENV]: Ensure your Python env/interpreter can import required packages`
+- `// TODO[IPC]: Increase/decrease retries if needed`
+- `// TODO[IPC]: Must match Python's created name and layout` (for all shared-memory fields)
+
+### Build · Debug · Run (Linux + VS Code)
+
+Using **CMake Tools** in VS Code on Linux:
+
+1. **Dependencies**
+   - System: `cmake`, `build-essential`, `gdb` (for debugging).
+   - VS Code extensions: **C/C++**, **CMake**, **CMake Tools**.
+
+2. **Configure**
+   - Open the folder with your `CMakeLists.txt` in VS Code.  
+   - Command Palette → **CMake: Configure**, or run:
+     ```bash
+     cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
+     ```
+
+3. **Build**
+   - Command Palette → **CMake: Build**, or:
+     ```bash
+     cmake --build build --config Debug -j
+     ```
+
+4. **Run**
+   - If your generator places config subfolders:
+     ```bash
+     ./build/Debug/<your_target_name>
+     ```
+   - Otherwise:
+     ```bash
+     ./build/<your_target_name>
+     ```
+   - Example (from our notes):  
+     ```bash
+     ./build/Debug/physicalTherapy
+     ```
+
+5. **Debug**
+   - In VS Code, choose the CMake target and press **Debug** (uses `gdb`), or create a `launch.json` pointing to `build/Debug/<your_target_name>` with `"MIMode": "gdb"`.
+
+> **Pre-flight checklist:**  
+> 1) FRI session connected (Java/KUKA app matches your initial pose).  
+> 2) Tool/TCP set correctly.  
+> 3) Force-torque sensor calibrated and publishing.  
+> 4) Trajectory/ZFT file exists under `basePath`.  
+> 5) (Optional) AVP bridge script running if using teleop/IPC.
+
+---
