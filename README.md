@@ -49,7 +49,7 @@ Then run the script to start the interface communication between the **Apple Vis
 ```bash
 python AVPTelemanipulation/avp_stream/VisionProCPPCommunication.py
 ```
-
+## AVP Telemanipulation (Robot Deployment) 
 Johannes: robot deployment
 
 ## Data for Training and Inference Simulation
