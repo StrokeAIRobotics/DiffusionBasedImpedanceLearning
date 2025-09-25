@@ -17,9 +17,9 @@ Learning methods excel at motion generation in the information domain but are no
 
 ## Hardware Setup
 
-- **Robot:** KUKA **LBR iiwa** (7 DOF) in **torque control** via **FRI** at **5 ms** sample time. Built-in gravity and Coriolis/centrifugal compensation remain active.  
-- **Kinematics/Dynamics:** Computed in C++ via the **Exp[licit]-FRI** interface.  
-- **External Wrenches:** **ATI Gamma** force/torque transducer on the flange (Fx,Fy,Fz,Mx,My,Mz).  
+- **Robot:** KUKA **LBR iiwa** (7 DOF) in **torque control** via **FRI** at **5 ms** sample time.  
+- **Kinematics/Dynamics:** Computed in C++ via the [**Exp[licit]-FRI**](https://github.com/explicit-robotics/Explicit-FRI) interface.  
+- **External Wrenches:** **ATI Gamma** force/torque transducer attached to the flange.  
 - **Baseline Controller Params:**  
   - Translational baseline stiffness: **800 N/m**  
   - Rotational baseline stiffness: **150 Nm/rad**  
@@ -27,7 +27,7 @@ Learning methods excel at motion generation in the information domain but are no
   - Force/moment thresholds for adaptation: **1 N** and **1 Nm**.  
 - **Safety Stops (parkour experiments):** **‖v‖ = 0.24 m/s** and **‖f_ext‖ = 20 N**.  
 - **Teleoperation (data collection):** **Apple Vision Pro** (VisionProTeleop) streams 6-DoF hand pose over shared memory to the C++ controller (ZFT-based telemanipulation).  
-- **Workpieces/Fixtures:** Parkour obstacles (bumper, circular target, ramp, tabletop) and peg-in-hole with **cylindrical**, **square**, and **star** pegs. All parts were **3D-printed on a PRUSA i3 MK3 (PLA)**. CAD and videos are linked on the project page.
+- **Workpieces/Fixtures:** Parkour obstacles (bumper, circular target, ramp, tabletop) and peg-in-hole with **cylindrical**, **square**, and **star** pegs. All parts were **3D-printed on a PRUSA i3 MK3 (PLA)**. CAD files can be found in this repository. Videos are linked on the project page.
 
 ---
 
