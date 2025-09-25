@@ -52,8 +52,11 @@ python AVPTelemanipulation/avp_stream/VisionProCPPCommunication.py
 
 Johannes: robot deployment
 
-## Data
-Noah 
+## Data for Training and Inference Simulation
+The model can be trained and evaluated on data collected via the telemanipulation procedure described above.  
+Alternatively, the dataset provided in `Data/Parkour` can be used directly.  
+This dataset was collected with the same teleoperation method and can serve as a starting point for both training and inference simulations.
+
 
 ## Impedance Learning
 Noah
