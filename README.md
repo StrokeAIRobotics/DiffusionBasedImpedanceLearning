@@ -6,8 +6,8 @@
 <sup>2</sup> MIT, Department of Mechanical Engineering, USA  
 <sup>3</sup> MIT, Department of Brain and Cognitive Sciences, USA  
 
-🔗 [Project Website](https://strokeairobotics.github.io/DiffusionBasedImpedanceAdaptation)  
-📄 [arXiv Paper](https://arxiv.org/abs/XXXX.XXXXX)  
+🔗 [Project Website](https://strokeairobotics.github.io/DiffusionBasedImpedanceLearning/)  
+📄 [arXiv Paper](https://arxiv.org/abs/2509.19696)  
 
 ---
 
