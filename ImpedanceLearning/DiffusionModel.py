@@ -64,8 +64,8 @@ def main():
     "early_stop_patience": early_stop_patience
     }
 
-    file_path = "D:\\Repos\\DiffusionBasedImpedanceAdaptation\\Data\\Parkour" #path to data txt files for training
-    file_path_application = "D:\\Repos\\DiffusionBasedImpedanceAdaptation\\Data\\Parkour\\ApplicationData" #path to data for inference simulation/whole sequence
+    file_path = "Your_Path\\Data\\Parkour" #path to data txt files for training
+    file_path_application = "Your_Path\\Data\\Parkour\\ApplicationData" #path to data for inference simulation/whole sequence
 
     # Load real data
     #data = load_robot_data(file_path, seq_length, use_overlap=True)
