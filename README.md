@@ -94,7 +94,7 @@ This repository includes a C++ torque-control client for the LBR iiwa that imple
 ### Code TODOs (from `MyLBRClient.cpp`)
 Search for these tags and set them for your setup:
 
-- `// TODO[CONFIG]: Verify/replace with YOUR initial robot configuration (must match Java app)`
+- `// TODO[CONFIG]: Verify/replace with YOUR initial robot configuration (must match the Java application)`
 - `// TODO[TOOL]: Choose the point position on your tool (in TOOL coordinates)`
 - `// TODO[GAINS]: Tune Kp (N/m) and Kr (Nm/rad) for your application`
 - `// TODO[DAMPING]: Tune joint-space damping if needed`
@@ -110,9 +110,9 @@ Search for these tags and set them for your setup:
 - `// TODO[IPC]: Increase/decrease retries if needed`
 - `// TODO[IPC]: Must match Python's created name and layout` (for all shared-memory fields)
 
-### Build · Debug · Run (Linux + VS Code)
+### Build · Debug · Run (tested for Linux + VS Code)
 
-Using **CMake Tools** in VS Code on Linux:
+Using **CMake Tools**:
 
 1. **Dependencies**
    - System: `cmake`, `build-essential`, `gdb` (for debugging).
@@ -142,17 +142,10 @@ Using **CMake Tools** in VS Code on Linux:
      ```
    - Example (from our notes):  
      ```bash
-     ./build/Debug/physicalTherapy
+     ./build/Debug/Parkour
      ```
 
 5. **Debug**
    - In VS Code, choose the CMake target and press **Debug** (uses `gdb`), or create a `launch.json` pointing to `build/Debug/<your_target_name>` with `"MIMode": "gdb"`.
-
-> **Pre-flight checklist:**  
-> 1) FRI session connected (Java/KUKA app matches your initial pose).  
-> 2) Tool/TCP set correctly.  
-> 3) Force-torque sensor calibrated and publishing.  
-> 4) Trajectory/ZFT file exists under `basePath`.  
-> 5) (Optional) AVP bridge script running if using teleop/IPC.
 
 ---
