@@ -59,7 +59,20 @@ This dataset was collected with the same teleoperation method and can serve as a
 
 
 ## Impedance Learning
-Noah
+
+An example training and inference script is provided:
+
+```bash
+python ImpedanceLearning/DiffusionModel.py
+```
+This script demonstrates the complete workflow:
+- Hyperparameters can be configured (e.g., number of noise-adding steps, beta start/end values, and many more).
+- Training, validation, and test data are automatically loaded.
+- The diffusion model is trained, evaluated, and an inference simulation is executed.
+- Models and results are stored automatically.
+
+This file is intended as an example of how to use the framework and can be extended or adapted for custom experiments.
+
 
 ## Robot deployment
 hardware (iiwa type, force sensor)
