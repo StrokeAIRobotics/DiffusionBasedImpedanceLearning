@@ -110,19 +110,11 @@ Deployment Parkour:
 </p>
 
 Deployment Peg-in-Hole:
-<p align="center">
-  <a href="https://www.youtube.com/watch?v=rra06_MiaIk">
-    <img src="https://img.youtube.com/vi/rra06_MiaIk/0.jpg" alt="Cylindrical Peg Constant" width="240">
-  </a>
-  &nbsp;&nbsp;&nbsp;
-  <a href="https://www.youtube.com/watch?v=0DB_RJmXkds">
-    <img src="https://img.youtube.com/vi/0DB_RJmXkds/0.jpg" alt="Square Peg Constant" width="240">
-  </a>
-  &nbsp;&nbsp;&nbsp;
-  <a href="https://www.youtube.com/watch?v=IymvYZjQl9g">
-    <img src="https://img.youtube.com/vi/IymvYZjQl9g/0.jpg" alt="Star Peg Constant" width="240">
-  </a>
-</p>
+
+[![Cylindrical Peg Constant](https://img.youtube.com/vi/rra06_MiaIk/0.jpg)](https://www.youtube.com/watch?v=rra06_MiaIk)
+[![Square Peg Constant](https://img.youtube.com/vi/0DB_RJmXkds/0.jpg)](https://www.youtube.com/watch?v=0DB_RJmXkds)
+[![Star Peg Constant](https://img.youtube.com/vi/IymvYZjQl9g/0.jpg)](https://www.youtube.com/watch?v=IymvYZjQl9g)
+
 
 
 
