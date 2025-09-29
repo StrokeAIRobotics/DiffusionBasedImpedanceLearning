@@ -98,7 +98,7 @@ This repository includes a C++ torque-control client for the LBR iiwa that imple
 
 Parkour Deployment:
 <p align="center">
-  <video src="videos/parkour_success.mp4" controls width="720"></video>
+  <video src="images/parkour_success.mp4" controls width="720"></video>
 </p>
 
 ### Code TODOs (from `MyLBRClient.cpp`)
