@@ -96,11 +96,6 @@ This file is intended as an example of how to use the framework and can be exten
 
 This repository includes a C++ torque-control client for the LBR iiwa that implements **diffusion-based impedance learning** with **directional stiffness adaptation** around the reconstructed **sZFT**.
 
-Parkour Deployment:
-<p align="center">
-  <video src="images/parkour_success.mp4" controls width="720"></video>
-</p>
-
 ### Code TODOs (from `MyLBRClient.cpp`)
 Search for these tags and set them for your setup:
 
