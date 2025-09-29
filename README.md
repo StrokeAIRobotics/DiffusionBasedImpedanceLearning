@@ -101,6 +101,31 @@ This file is intended as an example of how to use the framework and can be exten
 
 This repository includes a C++ torque-control client for the LBR iiwa that implements **diffusion-based impedance learning** with **directional stiffness adaptation** around the reconstructed **sZFT**.
 
+
+Deployment Parkour:
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=bG_JWL829WA">
+    <img src="https://img.youtube.com/vi/bG_JWL829WA/0.jpg" alt="Adaptive Impedance" width="480">
+  </a>
+</p>
+
+Deployment Peg-in-Hole:
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=rra06_MiaIk">
+    <img src="https://img.youtube.com/vi/rra06_MiaIk/0.jpg" alt="Cylindrical Peg Constant" width="240">
+  </a>
+  &nbsp;&nbsp;&nbsp;
+  <a href="https://www.youtube.com/watch?v=0DB_RJmXkds">
+    <img src="https://img.youtube.com/vi/0DB_RJmXkds/0.jpg" alt="Square Peg Constant" width="240">
+  </a>
+  &nbsp;&nbsp;&nbsp;
+  <a href="https://www.youtube.com/watch?v=IymvYZjQl9g">
+    <img src="https://img.youtube.com/vi/IymvYZjQl9g/0.jpg" alt="Star Peg Constant" width="240">
+  </a>
+</p>
+
+
+
 ### Code TODOs (from `MyLBRClient.cpp`)
 Search for these tags and set them for your setup:
 
