@@ -67,7 +67,11 @@ Then run the script to start the interface communication between the **Apple Vis
 python AVPTelemanipulation/avp_stream/VisionProCPPCommunication.py
 ```
 
-[![Parkour Trajectory Demo](https://img.youtube.com/vi/A7IriNSKP2w/0.jpg)](https://www.youtube.com/watch?v=A7IriNSKP2w)
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=A7IriNSKP2w">
+    <img src="https://img.youtube.com/vi/A7IriNSKP2w/0.jpg" alt="Parkour Trajectory Demo">
+  </a>
+</p>
 
 
 ## Data for Training and Inference Simulation
