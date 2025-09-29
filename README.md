@@ -67,7 +67,6 @@ Then run the script to start the interface communication between the **Apple Vis
 python AVPTelemanipulation/avp_stream/VisionProCPPCommunication.py
 ```
 
-[![Parkour Trajectory Demo](https://img.youtube.com/vi/A7IriNSKP2w/0.jpg)](https://www.youtube.com/watch?v=A7IriNSKP2w)
 
 
 ## Data for Training and Inference Simulation
@@ -155,3 +154,8 @@ Using **CMake Tools**:
    - In VS Code, choose the CMake target and press **Debug** (uses `gdb`), or create a `launch.json` pointing to `build/Debug/<your_target_name>` with `"MIMode": "gdb"`.
 
 ---
+
+
+<p align="center">
+  <video src="videos/parkour_success.mp4" controls width="720"></video>
+</p>
