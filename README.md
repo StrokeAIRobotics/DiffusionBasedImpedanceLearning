@@ -112,14 +112,14 @@ Deployment Parkour:
 Deployment Peg-in-Hole:
 
 <p align="center">
-  <a href="https://www.youtube.com/embed/zxOhxu6mGrI">
-    <img src="https://www.youtube.com/embed/zxOhxu6mGrI/0.jpg" alt="Cylindrical Peg Constant" width="240" style="border:none;">
+  <a href="https://www.youtube.com/watch?v=zxOhxu6mGrI">
+    <img src="https://img.youtube.com/vi/zxOhxu6mGrI/0.jpg" alt="Cylindrical Peg Constant" width="240">
   </a>
-  <a href="https://www.youtube.com/embed/xZFoi0Rz0UQ">
-    <img src="https://www.youtube.com/embed/xZFoi0Rz0UQ/0.jpg" alt="Square Peg Constant" width="240" style="border:none;">
+  <a href="https://www.youtube.com/watch?v=xZFoi0Rz0UQ">
+    <img src="https://img.youtube.com/vi/xZFoi0Rz0UQ/0.jpg" alt="Square Peg Constant" width="240">
   </a>
-  <a href="https://www.youtube.com/embed/h-n9hNcB0G4">
-    <img src="https://www.youtube.com/embed/h-n9hNcB0G4/0.jpg" alt="Star Peg Constant" width="240" style="border:none;">
+  <a href="https://www.youtube.com/watch?v=h-n9hNcB0G4">
+    <img src="https://img.youtube.com/vi/h-n9hNcB0G4/0.jpg" alt="Star Peg Constant" width="240">
   </a>
 </p>
 
